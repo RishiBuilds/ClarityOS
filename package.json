@@ -1,0 +1,32 @@
+{
+  "name": "clarityos",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "An agentic plain language compliance tool that rewrites complex institutional text to meet Flesch-Kincaid readability standards, powered by a LangGraph multi-agent workflow with Gemini and Llama-3.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "mcp": "node mcp-server/index.js"
+  },
+  "keywords": [
+    "plain-language",
+    "readability",
+    "flesch-kincaid",
+    "langgraph",
+    "mcp",
+    "gemini",
+    "llama"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@huggingface/inference": "^4.13.20",
+    "@langchain/community": "^1.1.29",
+    "@langchain/core": "^1.1.38",
+    "@langchain/google-genai": "^2.2.0",
+    "@langchain/langgraph": "^1.4.7",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.25.23"
+  }
+}
