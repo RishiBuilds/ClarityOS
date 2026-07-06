@@ -59,9 +59,8 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` with your credentials:
-
 ```env
+GEMINI_API_KEY=your_gemini_api_key
 GOOGLE_API_KEY=your_google_api_key
 HUGGINGFACEHUB_API_TOKEN=your_huggingface_token
 PORT=3000
@@ -155,7 +154,8 @@ node mcp-server/index.js
 
 | Variable                   | Required | Description                                                    |
 | -------------------------- | -------- | -------------------------------------------------------------- |
-| `GOOGLE_API_KEY`           | Yes      | Google Gemini API key (used by the Profiler and Critic agents) |
+| `GEMINI_API_KEY`           | Yes (one) | Google Gemini API key (alternative to `GOOGLE_API_KEY`)       |
+| `GOOGLE_API_KEY`           | Yes (one) | Google Gemini API key (used by the Profiler and Critic agents) |
 | `HUGGINGFACEHUB_API_TOKEN` | Yes      | HuggingFace API token (used by the Paraphraser agent)          |
 | `PORT`                     | No       | HTTP server port (default: `3000`)                             |
 
