@@ -4,6 +4,17 @@
 
 ---
 
+## The Problem
+Institutional documents (e.g., medical forms, legal contracts, insurance policies, government notices) are frequently written in highly dense, jargon-laden, and grammatically complex language. This creates significant barriers to accessibility, making critical information hard to comprehend for the general public, patients, or policyholders. Compliance mandates (such as the US Plain Writing Act) require organizations to simplify their materials, but manual translation to plain language is slow, costly, and highly inconsistent.
+
+## The Solution
+ClarityOS automates plain-language compliance through a multi-agent auditing and rewriting loop. The solution combines:
+1. **Deterministic Heuristics:** A fast pre-pass rule engine that replaces known institutional phrases (e.g., "utilize" to "use", "hypertension" to "high blood pressure") based on target readability grades.
+2. **Standardized Knowledge Delivery:** A Model Context Protocol (MCP) server that exposes grade-specific plain language guidelines directly to the agent runtime.
+3. **Agentic Orchestration (LangGraph):** A multi-agent network where separate LLMs handle profiling (identifying issues), paraphrasing (adapting text according to guidelines), and auditing (verifying Flesch-Kincaid score compliance and providing iteration feedback).
+
+---
+
 ## Features
 
 - **Multi-Agent Pipeline** — Profiler → Paraphraser → Critic loop with automatic quality gates
