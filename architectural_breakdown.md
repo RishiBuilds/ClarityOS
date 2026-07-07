@@ -12,26 +12,26 @@ Complex institutional text — such as medical discharge instructions, legal con
 
 ClarityOS solves this by providing an **agentic plain language compliance tool** that rewrites complex text to meet **Flesch-Kincaid readability standards**. It targets:
 
-| Grade | Target FK | Max Avg Sentence Length | Use Case |
-|-------|-----------|------------------------|----------|
-| **6** | ≤ 6.0 | 14 words | Healthcare, children's content |
-| **8** | ≤ 8.0 | 18 words | General public, government (US Plain Writing Act) |
-| **10** | ≤ 10.0 | 22 words | Legal, technical/professional |
+| Grade  | Target FK | Max Avg Sentence Length | Use Case                                          |
+| ------ | --------- | ----------------------- | ------------------------------------------------- |
+| **6**  | ≤ 6.0     | 14 words                | Healthcare, children's content                    |
+| **8**  | ≤ 8.0     | 18 words                | General public, government (US Plain Writing Act) |
+| **10** | ≤ 10.0    | 22 words                | Legal, technical/professional                     |
 
 The system tracks Flesch-Kincaid readability metrics, calculates and displays the simplification delta, and functions both as an **interactive web-based GUI** (a retro terminal dashboard) and as an **integration-ready Model Context Protocol (MCP) server**.
 
 ### 2. High-Level Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Runtime** | Node.js (ES Modules, `"type": "module"`) |
-| **Language** | Vanilla JavaScript (ES6+ ESModules throughout) |
-| **Protocol Support** | Model Context Protocol (MCP) SDK `v1.12.x` — JSON-RPC over stdio transport |
-| **Agentic Orchestration** | `@langchain/langgraph` `v1.4.x` — managing a `StateGraph` with conditional cycles |
-| **Inference Pipeline** | **Gemini 2.5 Flash** (via `@langchain/google-genai` `v2.2.x`, keyed by `GOOGLE_API_KEY` / `GEMINI_API_KEY`) for the Profiler and Critic nodes. **Llama-3-8B-Instruct** (via `@huggingface/inference` `v4.13.x`, keyed by `HUGGINGFACEHUB_API_TOKEN`) for the Paraphraser node. |
-| **Validation** | `Zod` `v3.25.x` for runtime request validation (HTTP API) and MCP tool schema checking |
-| **HTTP Server** | Built-in `node:http` — zero external framework dependencies |
-| **GUI** | Server-side rendered single HTML page with embedded CSS + vanilla JS, served inline from `gui.js` |
+| Layer                     | Technology                                                                                                                                                                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Runtime**               | Node.js (ES Modules, `"type": "module"`)                                                                                                                                                                                                                                       |
+| **Language**              | Vanilla JavaScript (ES6+ ESModules throughout)                                                                                                                                                                                                                                 |
+| **Protocol Support**      | Model Context Protocol (MCP) SDK `v1.12.x` — JSON-RPC over stdio transport                                                                                                                                                                                                     |
+| **Agentic Orchestration** | `@langchain/langgraph` `v1.4.x` — managing a `StateGraph` with conditional cycles                                                                                                                                                                                              |
+| **Inference Pipeline**    | **Gemini 2.5 Flash** (via `@langchain/google-genai` `v2.2.x`, keyed by `GOOGLE_API_KEY` / `GEMINI_API_KEY`) for the Profiler and Critic nodes. **Llama-3-8B-Instruct** (via `@huggingface/inference` `v4.13.x`, keyed by `HUGGINGFACEHUB_API_TOKEN`) for the Paraphraser node. |
+| **Validation**            | `Zod` `v3.25.x` for runtime request validation (HTTP API) and MCP tool schema checking                                                                                                                                                                                         |
+| **HTTP Server**           | Built-in `node:http` — zero external framework dependencies                                                                                                                                                                                                                    |
+| **GUI**                   | Server-side rendered single HTML page with embedded CSS + vanilla JS, served inline from `gui.js`                                                                                                                                                                              |
 
 ### 3. Dependency Philosophy
 
@@ -142,9 +142,9 @@ When a rewrite request hits `POST /api/humanize`, the data undergoes loop-based 
 └────────────────────────────┬─────────────────────────────────────┘
                              ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│              LangGraph StateGraph (workflow.js)                   │
+│              LangGraph StateGraph (workflow.js)                  │
 │                                                                  │
-│  START ──→ [PROFILER] ──→ [PARAPHRASER] ──→ [CRITIC] ──→ ?      │
+│  START ──→ [PROFILER] ──→ [PARAPHRASER] ──→ [CRITIC] ──→ ?       │
 │                                                  │               │
 │                            ┌─────────────────────┤               │
 │                            │                     │               │
@@ -152,7 +152,7 @@ When a rewrite request hits `POST /api/humanize`, the data undergoes loop-based 
 │                    AND iterations < 4     OR iterations >= 4     │
 │                            │                     │               │
 │                            ▼                     ▼               │
-│                     [PARAPHRASER]              [END]              │
+│                     [PARAPHRASER]              [END]             │
 │                            │                                     │
 │                            └──→ [CRITIC] ──→ ?                   │
 │                                  (loop)                          │
@@ -160,7 +160,7 @@ When a rewrite request hits `POST /api/humanize`, the data undergoes loop-based 
                              │
                              ▼ { draftText, readabilityScores, iterations }
 ┌──────────────────────────────────────────────────────────────────┐
-│                     gui.js — Response Assembly                    │
+│                     gui.js — Response Assembly                   │
 │  1. Extract afterFK from result (or recalculate)                 │
 │  2. Return { result, plainText, readabilityScores, iterations }  │
 └────────────────────────────┬─────────────────────────────────────┘
@@ -176,39 +176,39 @@ When a rewrite request hits `POST /api/humanize`, the data undergoes loop-based 
 
 #### Agent 1: Profiler ([`agents/profiler.js`](file:///c:/Users/rishi/ClarityOS/agents/profiler.js))
 
-| Aspect | Detail |
-|--------|--------|
-| **LLM** | Gemini 2.5 Flash (`@langchain/google-genai`) |
-| **Temperature** | 0.3 (low variance, deterministic analysis) |
-| **Input** | `state.rawText`, `state.gradeLevel` |
-| **Output** | `{ directive, readabilityScores: { before, after: null }, status: "profiled" }` |
-| **Purpose** | Computes baseline FK score, then sends the raw text to Gemini with a structured system prompt requesting analysis of: reading difficulty, long sentences (>25 words), passive voice, jargon, and nominalization patterns. Produces a structured editing `directive` with sections: `TARGET_GRADE`, `CURRENT_GRADE`, `PROBLEM_PATTERNS`, `LONG_SENTENCES`, `PASSIVE_VOICE`, `VOCABULARY_TIER`, `SENTENCE_COMPLEXITY`. |
-| **Lazy Loading** | `ChatGoogleGenerativeAI` is dynamically imported via `await import()` inside the node function, avoiding module-level instantiation failures when API keys are absent. |
+| Aspect           | Detail                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **LLM**          | Gemini 2.5 Flash (`@langchain/google-genai`)                                                                                                                                                                                                                                                                                                                                                                         |
+| **Temperature**  | 0.3 (low variance, deterministic analysis)                                                                                                                                                                                                                                                                                                                                                                           |
+| **Input**        | `state.rawText`, `state.gradeLevel`                                                                                                                                                                                                                                                                                                                                                                                  |
+| **Output**       | `{ directive, readabilityScores: { before, after: null }, status: "profiled" }`                                                                                                                                                                                                                                                                                                                                      |
+| **Purpose**      | Computes baseline FK score, then sends the raw text to Gemini with a structured system prompt requesting analysis of: reading difficulty, long sentences (>25 words), passive voice, jargon, and nominalization patterns. Produces a structured editing `directive` with sections: `TARGET_GRADE`, `CURRENT_GRADE`, `PROBLEM_PATTERNS`, `LONG_SENTENCES`, `PASSIVE_VOICE`, `VOCABULARY_TIER`, `SENTENCE_COMPLEXITY`. |
+| **Lazy Loading** | `ChatGoogleGenerativeAI` is dynamically imported via `await import()` inside the node function, avoiding module-level instantiation failures when API keys are absent.                                                                                                                                                                                                                                               |
 
 #### Agent 2: Paraphraser ([`agents/paraphraser.js`](file:///c:/Users/rishi/ClarityOS/agents/paraphraser.js))
 
-| Aspect | Detail |
-|--------|--------|
-| **LLM** | Meta Llama-3-8B-Instruct (via `@huggingface/inference` `HfInference.chatCompletion`) |
-| **Temperature** | 0.7 (higher variance for creative rewriting) |
-| **Max Tokens** | 1024 |
-| **Input** | `state.draftText ?? state.rawText`, `state.directive`, `state.gradeLevel` |
-| **Output** | `{ draftText, status: "paraphrased" }` |
-| **MCP Integration** | Before invoking the LLM, the Paraphraser spawns a **child process** running `mcp-server/index.js` via `StdioClientTransport`, calls `get_plain_language_patterns` with the current `gradeLevel`, parses the JSON response, and injects up to 30 regex-based replacement rules directly into the system prompt as explicit `"Replace X with Y"` instructions. |
-| **Custom LLM Wrapper** | Does NOT use LangChain's built-in HuggingFace wrapper. Instead, defines a custom `ChatHuggingFace` class that lazily initializes `HfInference` and calls `hf.chatCompletion()` directly. This gives fine-grained control over the chat message format. |
-| **Fallback** | If MCP connection fails, the Paraphraser proceeds with an empty pattern set (degrades gracefully). |
+| Aspect                 | Detail                                                                                                                                                                                                                                                                                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **LLM**                | Meta Llama-3-8B-Instruct (via `@huggingface/inference` `HfInference.chatCompletion`)                                                                                                                                                                                                                                                                         |
+| **Temperature**        | 0.7 (higher variance for creative rewriting)                                                                                                                                                                                                                                                                                                                 |
+| **Max Tokens**         | 1024                                                                                                                                                                                                                                                                                                                                                         |
+| **Input**              | `state.draftText ?? state.rawText`, `state.directive`, `state.gradeLevel`                                                                                                                                                                                                                                                                                    |
+| **Output**             | `{ draftText, status: "paraphrased" }`                                                                                                                                                                                                                                                                                                                       |
+| **MCP Integration**    | Before invoking the LLM, the Paraphraser spawns a **child process** running `mcp-server/index.js` via `StdioClientTransport`, calls `get_plain_language_patterns` with the current `gradeLevel`, parses the JSON response, and injects up to 30 regex-based replacement rules directly into the system prompt as explicit `"Replace X with Y"` instructions. |
+| **Custom LLM Wrapper** | Does NOT use LangChain's built-in HuggingFace wrapper. Instead, defines a custom `ChatHuggingFace` class that lazily initializes `HfInference` and calls `hf.chatCompletion()` directly. This gives fine-grained control over the chat message format.                                                                                                       |
+| **Fallback**           | If MCP connection fails, the Paraphraser proceeds with an empty pattern set (degrades gracefully).                                                                                                                                                                                                                                                           |
 
 #### Agent 3: Critic ([`agents/critic.js`](file:///c:/Users/rishi/ClarityOS/agents/critic.js))
 
-| Aspect | Detail |
-|--------|--------|
-| **LLM** | Gemini 2.5 Flash (conditionally invoked) |
-| **Temperature** | 0.2 (very low variance, strict evaluation) |
-| **Input** | `state.draftText`, `state.gradeLevel`, `state.directive`, `state.readabilityScores` |
-| **Output** | `{ status: "approved" | "rejected", directive (amended), readabilityScores (updated) }` |
-| **Score Gate** | Computes the FK grade of `draftText`. If `afterScore <= gradeLevel`, immediately returns `status: "approved"` **without calling Gemini**. This is a critical cost/latency optimization. |
+| Aspect                 | Detail                                                                                                                                                                                                                                                                                                                                            |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **LLM**                | Gemini 2.5 Flash (conditionally invoked)                                                                                                                                                                                                                                                                                                          |
+| **Temperature**        | 0.2 (very low variance, strict evaluation)                                                                                                                                                                                                                                                                                                        |
+| **Input**              | `state.draftText`, `state.gradeLevel`, `state.directive`, `state.readabilityScores`                                                                                                                                                                                                                                                               |
+| **Output**             | `{ status: "approved"                                                                                                                                                                                                                                                                                                                             | "rejected", directive (amended), readabilityScores (updated) }` |
+| **Score Gate**         | Computes the FK grade of `draftText`. If `afterScore <= gradeLevel`, immediately returns `status: "approved"` **without calling Gemini**. This is a critical cost/latency optimization.                                                                                                                                                           |
 | **Qualitative Review** | If the score gate fails, invokes Gemini with a review prompt requesting specific, actionable feedback on: complex sentences, word replacements, passive voice, and remaining jargon. The feedback is appended to the existing `directive` as a `--- CRITIC FEEDBACK (Iteration) ---` block, which the Paraphraser will see on the next loop pass. |
-| **Loop Throttle** | Always sleeps for **2000ms** at the start of execution (`await new Promise(resolve => setTimeout(resolve, 2000))`) to prevent API rate limiting during rapid loop iterations. |
+| **Loop Throttle**      | Always sleeps for **2000ms** at the start of execution (`await new Promise(resolve => setTimeout(resolve, 2000))`) to prevent API rate limiting during rapid loop iterations.                                                                                                                                                                     |
 
 ### 3. State & Channels
 
@@ -217,13 +217,13 @@ The [`StateGraph`](file:///c:/Users/rishi/ClarityOS/graph/workflow.js) state is 
 ```javascript
 const workflowStateConfig = {
   channels: {
-    rawText: null,          // The original input text (immutable across iterations)
-    directive: null,        // Profiler's analysis + Critic's cumulative feedback
-    draftText: null,        // The working copy — mutated by Paraphraser each pass
-    status: null,           // Transition flag: "profiled" | "paraphrased" | "approved" | "rejected"
-    gradeLevel: null,       // Target FK grade: "6" | "8" | "10"
-    readabilityScores: null,// { before: number, after: number | null }
-    iterations: null,       // Loop counter (incremented by criticWithIterations wrapper)
+    rawText: null, // The original input text (immutable across iterations)
+    directive: null, // Profiler's analysis + Critic's cumulative feedback
+    draftText: null, // The working copy — mutated by Paraphraser each pass
+    status: null, // Transition flag: "profiled" | "paraphrased" | "approved" | "rejected"
+    gradeLevel: null, // Target FK grade: "6" | "8" | "10"
+    readabilityScores: null, // { before: number, after: number | null }
+    iterations: null, // Loop counter (incremented by criticWithIterations wrapper)
   },
 };
 ```
@@ -353,13 +353,13 @@ const server = http.createServer(async (req, res) => { ... });
 
 **Route table**:
 
-| Method | Path | Handler | Purpose |
-|--------|------|---------|---------|
-| `GET` | `/` | `renderPage()` | Serves the inline HTML dashboard |
-| `GET` | `/health` | Inline | Returns `{ ok: true, timestamp }` |
-| `POST` | `/api/humanize` | `handleHumanize()` | Triggers the LangGraph pipeline |
-| `OPTIONS` | `*` | Inline | CORS preflight (204) |
-| `*` | `*` | Inline | 404 JSON response |
+| Method    | Path            | Handler            | Purpose                           |
+| --------- | --------------- | ------------------ | --------------------------------- |
+| `GET`     | `/`             | `renderPage()`     | Serves the inline HTML dashboard  |
+| `GET`     | `/health`       | Inline             | Returns `{ ok: true, timestamp }` |
+| `POST`    | `/api/humanize` | `handleHumanize()` | Triggers the LangGraph pipeline   |
+| `OPTIONS` | `*`             | Inline             | CORS preflight (204)              |
+| `*`       | `*`             | Inline             | 404 JSON response                 |
 
 ### 2. Request Validation
 
@@ -367,7 +367,7 @@ The `/api/humanize` endpoint uses **Zod** for runtime validation:
 
 ```javascript
 const HumanizeRequestSchema = z.object({
-  text: z.string().min(1).max(10000),        // 1–10,000 characters
+  text: z.string().min(1).max(10000), // 1–10,000 characters
   gradeLevel: z.enum(["6", "8", "10"]).default("8"),
 });
 ```
@@ -400,12 +400,12 @@ This allows the dashboard to be accessed from any origin, including local develo
 
 ### 2. Exposed Tool
 
-| Property | Value |
-|----------|-------|
-| **Name** | `get_plain_language_patterns` |
+| Property         | Value                                                                 |
+| ---------------- | --------------------------------------------------------------------- |
+| **Name**         | `get_plain_language_patterns`                                         |
 | **Input Schema** | `{ gradeLevel: "6" \| "8" \| "10" }` (validated by Zod strict schema) |
-| **Output** | `Array<{ find: string, replace: string, flags: string }>` |
-| **Data Source** | `src/patterns.js` — `getPatternsByGrade(gradeLevel)` |
+| **Output**       | `Array<{ find: string, replace: string, flags: string }>`             |
+| **Data Source**  | `src/patterns.js` — `getPatternsByGrade(gradeLevel)`                  |
 
 ### 3. RegExp Serialization Strategy
 
@@ -413,9 +413,9 @@ JavaScript `RegExp` objects are not JSON-serializable. The MCP server solves thi
 
 ```javascript
 const serialisablePatterns = gradePatterns.map((p) => ({
-  find: p.regex.source,    // e.g., "\\butilize\\b"
-  replace: p.replacement,  // e.g., "use"
-  flags: p.regex.flags,    // e.g., "gi"
+  find: p.regex.source, // e.g., "\\butilize\\b"
+  replace: p.replacement, // e.g., "use"
+  flags: p.regex.flags, // e.g., "gi"
 }));
 ```
 
@@ -431,6 +431,7 @@ The MCP protocol communicates over **stdin/stdout**. Any stray `console.log()` c
 
 > [!CAUTION]
 > **ALL logs, trace messages, and server notifications MUST be directed exclusively to `stderr`.** The codebase enforces this in three ways:
+>
 > 1. [`src/logger.js`](file:///c:/Users/rishi/ClarityOS/src/logger.js) writes exclusively via `process.stderr.write()`.
 > 2. [`mcp-server/index.js`](file:///c:/Users/rishi/ClarityOS/mcp-server/index.js) defines a local `log()` helper that writes to `process.stderr`.
 > 3. All agent files (`profiler.js`, `paraphraser.js`, `critic.js`, `workflow.js`) use `console.error()` instead of `console.log()`.
@@ -444,12 +445,14 @@ LangChain client wrappers will throw errors during module initialization if API 
 
 ```javascript
 // src/index.js — runs FIRST
-try { process.loadEnvFile(); } catch (e) {}
+try {
+  process.loadEnvFile();
+} catch (e) {}
 
 // agents/profiler.js — runs LATER, inside graph.invoke()
 const { ChatGoogleGenerativeAI } = await import("@langchain/google-genai");
 const model = new ChatGoogleGenerativeAI({
-  apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,  // populated by now
+  apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY, // populated by now
 });
 ```
 
@@ -486,7 +489,7 @@ Each Paraphraser invocation spawns a **new** MCP server child process and tears 
 The codebase supports two environment variable names for the same Google API key:
 
 ```javascript
-apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
+apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 ```
 
 This accommodates both the Gemini-specific key name and the broader Google API key convention. The startup warning in `src/index.js` checks for both and only warns if **neither** is set.
@@ -514,11 +517,11 @@ ClarityOS is **entirely stateless**. There is no database, no file-based storage
 The dashboard uses **vanilla JavaScript module-scope variables** for state:
 
 ```javascript
-let selectedGrade = '8';        // Current grade level selection
-let selectedDocType = 'medical'; // Current document type (UI-only, not sent to API)
-let isProcessing = false;        // Lock flag to prevent concurrent requests
-let logCount = 1;                // Log entry counter
-let loadingDotsInterval = null;  // Reference to the "PROCESSING..." animation timer
+let selectedGrade = "8"; // Current grade level selection
+let selectedDocType = "medical"; // Current document type (UI-only, not sent to API)
+let isProcessing = false; // Lock flag to prevent concurrent requests
+let logCount = 1; // Log entry counter
+let loadingDotsInterval = null; // Reference to the "PROCESSING..." animation timer
 ```
 
 ### 2. UI Interaction Flow
@@ -592,23 +595,23 @@ graph TD
 
 ## Appendix B: Environment Variable Reference
 
-| Variable | Required | Used By | Description |
-|----------|----------|---------|-------------|
-| `GEMINI_API_KEY` | Yes (one of two) | Profiler, Critic | Google Gemini API key |
-| `GOOGLE_API_KEY` | Yes (one of two) | Profiler, Critic | Alternative Google API key name |
-| `HUGGINGFACEHUB_API_TOKEN` | Yes | Paraphraser | HuggingFace Inference API token |
-| `PORT` | No (default: 3000) | GUI Server | HTTP server listen port |
+| Variable                   | Required           | Used By          | Description                     |
+| -------------------------- | ------------------ | ---------------- | ------------------------------- |
+| `GEMINI_API_KEY`           | Yes (one of two)   | Profiler, Critic | Google Gemini API key           |
+| `GOOGLE_API_KEY`           | Yes (one of two)   | Profiler, Critic | Alternative Google API key name |
+| `HUGGINGFACEHUB_API_TOKEN` | Yes                | Paraphraser      | HuggingFace Inference API token |
+| `PORT`                     | No (default: 3000) | GUI Server       | HTTP server listen port         |
 
 ---
 
 ## Appendix C: Error Handling Strategy
 
-| Layer | Error Type | Handling |
-|-------|-----------|----------|
-| HTTP Input | Malformed JSON | 400 with `"Invalid JSON body"` |
-| HTTP Input | Zod validation failure | 400 with issue details |
-| LangGraph Pipeline | Any thrown error | Caught in `handleHumanize`, returned as 500 |
-| MCP Connection | Transport/parse failure | Caught in `fetchRewritePatterns`, returns empty array (graceful degradation) |
-| Agent Nodes | Missing `rawText`/`draftText` | Throws `Error` (halts pipeline) |
-| Application Layer | Input validation | `ValidationError` (custom class with `field` property) |
-| Application Layer | Processing failure | `ProcessingError` (custom class with `originalText` property) |
+| Layer              | Error Type                    | Handling                                                                     |
+| ------------------ | ----------------------------- | ---------------------------------------------------------------------------- |
+| HTTP Input         | Malformed JSON                | 400 with `"Invalid JSON body"`                                               |
+| HTTP Input         | Zod validation failure        | 400 with issue details                                                       |
+| LangGraph Pipeline | Any thrown error              | Caught in `handleHumanize`, returned as 500                                  |
+| MCP Connection     | Transport/parse failure       | Caught in `fetchRewritePatterns`, returns empty array (graceful degradation) |
+| Agent Nodes        | Missing `rawText`/`draftText` | Throws `Error` (halts pipeline)                                              |
+| Application Layer  | Input validation              | `ValidationError` (custom class with `field` property)                       |
+| Application Layer  | Processing failure            | `ProcessingError` (custom class with `originalText` property)                |
