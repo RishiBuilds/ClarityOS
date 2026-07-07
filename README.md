@@ -5,10 +5,13 @@
 ---
 
 ## The Problem
+
 Institutional documents (e.g., medical forms, legal contracts, insurance policies, government notices) are frequently written in highly dense, jargon-laden, and grammatically complex language. This creates significant barriers to accessibility, making critical information hard to comprehend for the general public, patients, or policyholders. Compliance mandates (such as the US Plain Writing Act) require organizations to simplify their materials, but manual translation to plain language is slow, costly, and highly inconsistent.
 
 ## The Solution
+
 ClarityOS automates plain-language compliance through a multi-agent auditing and rewriting loop. The solution combines:
+
 1. **Deterministic Heuristics:** A fast pre-pass rule engine that replaces known institutional phrases (e.g., "utilize" to "use", "hypertension" to "high blood pressure") based on target readability grades.
 2. **Standardized Knowledge Delivery:** A Model Context Protocol (MCP) server that exposes grade-specific plain language guidelines directly to the agent runtime.
 3. **Agentic Orchestration (LangGraph):** A multi-agent network where separate LLMs handle profiling (identifying issues), paraphrasing (adapting text according to guidelines), and auditing (verifying Flesch-Kincaid score compliance and providing iteration feedback).
@@ -53,6 +56,8 @@ Browser → HTTP POST /api/humanize → LangGraph StateGraph
 ```
 
 The **Profiler** scores the input text and issues a simplification directive. The **Paraphraser** rewrites the text, pulling grade-specific replacement patterns from the MCP server. The **Critic** re-scores the draft and either approves it or sends it back for another pass, up to four iterations.
+
+For a detailed technical analysis of the execution lifecycle, loops, and design patterns, please refer to the [Architectural Blueprint & Technical Breakdown](architectural_breakdown.md).
 
 ---
 
@@ -163,12 +168,12 @@ node mcp-server/index.js
 
 ## Environment Variables
 
-| Variable                   | Required | Description                                                    |
-| -------------------------- | -------- | -------------------------------------------------------------- |
-| `GEMINI_API_KEY`           | Yes (one) | Google Gemini API key (alternative to `GOOGLE_API_KEY`)       |
+| Variable                   | Required  | Description                                                    |
+| -------------------------- | --------- | -------------------------------------------------------------- |
+| `GEMINI_API_KEY`           | Yes (one) | Google Gemini API key (alternative to `GOOGLE_API_KEY`)        |
 | `GOOGLE_API_KEY`           | Yes (one) | Google Gemini API key (used by the Profiler and Critic agents) |
-| `HUGGINGFACEHUB_API_TOKEN` | Yes      | HuggingFace API token (used by the Paraphraser agent)          |
-| `PORT`                     | No       | HTTP server port (default: `3000`)                             |
+| `HUGGINGFACEHUB_API_TOKEN` | Yes       | HuggingFace API token (used by the Paraphraser agent)          |
+| `PORT`                     | No        | HTTP server port (default: `3000`)                             |
 
 ---
 
