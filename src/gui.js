@@ -636,7 +636,10 @@ function renderPage() {
 <body>
 
   <header class="app-header">
-    <div class="app-wordmark">ClarityOS</div>
+    <div class="app-wordmark" style="display: flex; align-items: center; gap: 8px;">
+      <span>CLARITY // OS</span>
+      <span style="font-size: 9px; padding: 2px 5px; border-radius: 3px; background: rgba(63, 185, 80, 0.15); color: var(--accent-green); font-weight: normal; letter-spacing: normal; text-transform: uppercase;">Active</span>
+    </div>
     <div class="pipeline-status" id="pipeline-status">
       <div class="pipeline-pill" data-step="profiler" id="step-profiler">PROFILER</div>
       <div class="pipeline-dot"></div>
